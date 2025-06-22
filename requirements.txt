@@ -4,3 +4,5 @@ pillow
 dotenv
 cryptography
 flask_sqlalchemy
+Flask-Cors
+flake8

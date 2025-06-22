@@ -1,0 +1,73 @@
+<!-- templates/card_template.html -->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ card.name }} - Carte Numérique</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+      }
+      .card h1 {
+        margin-top: 0;
+      }
+      .card p {
+        color: #555;
+      }
+      .card .links a {
+        display: block;
+        background: #007bff;
+        color: white;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .card .links a:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>{{ card.name }}</h1>
+      <p>{{ card.title }}</p>
+      <hr />
+      <div class="links">
+        {% if card.phone %}<a href="tel:{{ card.phone }}">Appeler</a>{% endif %}
+        {% if card.email %}<a href="mailto:{{ card.email }}">Envoyer un email</a
+        >{% endif %} {% if card.website %}<a
+          href="{{ card.website }}"
+          target="_blank"
+          >Site Web</a
+        >{% endif %} {% if card.instagram %}<a
+          href="https://instagram.com/{{ card.instagram }}"
+          target="_blank"
+          >Instagram</a
+        >{% endif %} {% if card.linkedin %}<a
+          href="https://linkedin.com/in/{{ card.linkedin }}"
+          target="_blank"
+          >LinkedIn</a
+        >{% endif %}
+      </div>
+    </div>
+  </body>
+</html>
