@@ -3,3 +3,4 @@ qrcode
 pillow
 dotenv
 cryptography
+flask_sqlalchemy
