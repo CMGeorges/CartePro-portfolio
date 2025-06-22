@@ -5,14 +5,22 @@ import qrcode
 from PIL import Image
 import io
 import os
+import json
+import uuid
+from routes import main_routes
+from auth import auth_routes
 
 app = Flask(__name__)
+app.secret_key = "dev_secret_key"  # Use env variable in production
 
+app.register_blueprint(main_routes)
+app.register_blueprint(auth_routes)
 
 # Configurations
 UPLOAD_FOLDER = 'uploads'
 DEFAULT_LOGO = 'static/logo.png'
 DATA_FILE = 'data/cards.json'
+USERS_FILE = 'data/users.json'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs('static', exist_ok=True)
 os.makedirs('data', exist_ok=True)
@@ -29,6 +37,21 @@ def load_cards():
 def save_cards(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
+
+# Helpers for users
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        with open(USERS_FILE, 'w') as f:
+            json.dump({}, f)
+    with open(USERS_FILE, 'r') as f:
+        return json.load(f)
+
+def save_users(users):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f, indent=2)
+
+
+
 
 @app.route('/')
 def index():
@@ -108,7 +131,6 @@ def get_card(card_id):
 
 
 if __name__ == '__main__':
-    # IMPORTANT: Use os.environ.get("PORT") and bind to '0.0.0.0'
-    port = int(os.environ.get("PORT", 5000)) # Default to 5000 for local testing
-    app.run(host='0.0.0.0', port=port, debug=False)  # Set debug=True for development, change to False in production
-   # app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
