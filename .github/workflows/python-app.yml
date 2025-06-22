@@ -21,9 +21,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          cd backend
 
       - name: Run tests (placeholder)
         run: |
