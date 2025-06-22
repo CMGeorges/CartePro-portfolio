@@ -30,7 +30,7 @@ jobs:
       - name: Linter avec Flake8
         run: |
           # Installe Flake8 (si pas dans requirements.txt) et vérifie le code
-          #pip install flake8
+          pip install flake8
           # Stoppe le build s'il y a des erreurs de style ou de syntaxe.
           # --count --select=E9,F63,F7,F82 --show-source --statistics
           # --exit-zero ne bloque pas pour les erreurs de style, juste les erreurs graves.
