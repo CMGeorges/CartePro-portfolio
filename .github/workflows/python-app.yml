@@ -40,3 +40,13 @@ jobs:
         run: |
           echo "Tests unitaires à venir avec Pytest..."
           # Quand tu auras des tests, tu pourras lancer: pytest
+
+       - name: Exécuter des tests (avec la clé API)
+        run: |
+          # Ici, tu peux lancer tes tests Pytest qui appellent l'API Stripe
+          echo "Lancement des tests avec la clé Stripe..."
+        env:
+          # C'est ici la magie ! On injecte le secret GitHub
+          # dans une variable d'environnement pour le script de test.
+          STRIPE_API_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          # Tu devras configurer ton code de test pour lire cette variable.
