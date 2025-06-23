@@ -9,9 +9,9 @@ import stripe
 # stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 
 # Dictionnaire de nos "Price IDs" que tu vas créer dans ton tableau de bord Stripe
-STRIPE_PRICES = {
-    'one_time': 'price_xxxxxxxxxxxxxx', # Remplace par ton Price ID Stripe
-    'pro_annual': 'price_yyyyyyyyyyyyyy'
+#STRIPE_PRICES = {
+    'one_time': 'price_1Rcxsq00padFPyonZ4wx7Sdd', # Remplace par ton Price ID Stripe
+    'pro_annual': 'price_1RcxxJ00padFPyonY8Jc8jtK'
 }
 
 main_routes = Blueprint('main', __name__)
@@ -20,20 +20,26 @@ main_routes = Blueprint('main', __name__)
 # @login_required # <-- On protégera cette route plus tard
 def create_checkout_session():
     data = request.json
-    plan = data.get('plan') # 'one_time' ou 'pro_annual'
-    price_id = STRIPE_PRICES.get(plan)
+    price_id = data.get('price_id') # <-- On reçoit le price_id
 
     if not price_id:
-        return jsonify({"error": "Invalid plan"}), 400
+        return jsonify({"error": "Missing price_id"}), 400
 
     try:
+        # On vérifie que le prix existe et est actif pour plus de sécurité
+        price = stripe.Price.retrieve(price_id)
+        if not price.active:
+            return jsonify({"error": "This price is no longer available"}), 400
+
         checkout_session = stripe.checkout.Session.create(
             line_items=[{'price': price_id, 'quantity': 1}],
-            mode='subscription' if plan != 'one_time' else 'payment',
+            mode='subscription' if price.type == 'recurring' else 'payment',
             success_url=request.host_url + 'payment-success?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=request.host_url + 'payment-cancel',
         )
-        return redirect(checkout_session.url, code=303)
+        # On retourne l'URL de checkout au lieu de rediriger directement,
+        # c'est plus propre pour une API.
+        return jsonify({'url': checkout_session.url})
     except Exception as e:
         return jsonify(error=str(e)), 500
 
@@ -134,3 +140,26 @@ def stripe_webhook():
     # TODO:Gérer d'autres événements...
     
     return 'Success', 200
+
+
+@main_routes.route('/config', methods=['GET'])
+def get_config():
+    # On récupère tous les produits actifs depuis Stripe
+    # L'argument 'expand' permet de récupérer le prix par défaut en une seule requête
+    products = stripe.Product.list(active=True, expand=['data.default_price'])
+    
+    plans = []
+    for product in products:
+        # On s'assure que le produit a bien un prix par défaut
+        if product.default_price:
+            plans.append({
+                "name": product.name,
+                "description": product.description,
+                "price_id": product.default_price.id,
+                # Le prix est en centimes, on le convertit en dollars
+                "price": f"{product.default_price.unit_amount / 100:.2f}", 
+                "currency": product.default_price.currency,
+                "interval": product.default_price.recurring.interval if product.default_price.recurring else 'one-time',
+            })
+
+    return jsonify(plans)
