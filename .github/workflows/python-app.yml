@@ -1,6 +1,6 @@
 # .github/workflows/ci.yml
 
-name: Python Flask CI
+name: Python Flask CI/CD
 
 on:
   # Déclenche le workflow sur les push et pull requests vers la branche principale
@@ -34,19 +34,20 @@ jobs:
           # Stoppe le build s'il y a des erreurs de style ou de syntaxe.
           # --count --select=E9,F63,F7,F82 --show-source --statistics
           # --exit-zero ne bloque pas pour les erreurs de style, juste les erreurs graves.
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 . -
+            -count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Exécuter des tests unitaires (placeholder)
         run: |
           echo "Tests unitaires à venir avec Pytest..."
           # Quand tu auras des tests, tu pourras lancer: pytest
 
-       - name: Exécuter des tests (avec la clé API)
+      - name: Exécuter des tests (avec la clé API)
         run: |
           # Ici, tu peux lancer tes tests Pytest qui appellent l'API Stripe
           echo "Lancement des tests avec la clé Stripe..."
-        env:
-          # C'est ici la magie ! On injecte le secret GitHub
-          # dans une variable d'environnement pour le script de test.
-          STRIPE_API_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          # Tu devras configurer ton code de test pour lire cette variable.
+        #env:
+        # C'est ici la magie ! On injecte le secret GitHub
+        # dans une variable d'environnement pour le script de test.
+        #STRIPE_API_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        # Tu devras configurer ton code de test pour lire cette variable.
