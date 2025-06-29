@@ -140,13 +140,11 @@ def stripe_webhook():
     
     return 'Success', 200
 
-import stripe
-from flask import current_app
 
 @main_routes.route('/config', methods=['GET'])
 def get_config():
     # On récupère tous les produits actifs depuis Stripe
-    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    #stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
     # L'argument 'expand' permet de récupérer le prix par défaut en une seule requête
     products = stripe.Product.list(active=True, expand=['data.default_price'])
     
