@@ -26,10 +26,7 @@ def create_app(config_class=Config):
     admin.init_app(app) # Initialiser Flask-Admin
 
     # Enregistrer le blueprint
-    app.register_blueprint(main_routes)
-    # Tu pourras ajouter ton blueprint d'authentification ici plus tard
-    # from .auth import auth_routes
-    # app.register_blueprint(auth_routes)
+    app.register_blueprint(main_routes, url_prefix='/api/v1')
     app.register_blueprint(auth_routes, url_prefix='/auth')
 
 
