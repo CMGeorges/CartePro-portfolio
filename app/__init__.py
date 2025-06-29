@@ -51,5 +51,8 @@ def create_app(config_class=Config):
     # Créer les tables de la base de données si elles n'existent pas
     with app.app_context():
         db.create_all()
-
+        # Optionnel : Créer un utilisateur admin par défaut
+        
     return app
+
+app = create_app()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
