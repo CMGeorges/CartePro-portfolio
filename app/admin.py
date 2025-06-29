@@ -1,5 +1,5 @@
 from flask_admin import Admin, AdminIndexView
-from flask_admin.contrib.sqla import ModelViewfrom
+from flask_admin.contrib.sqla import ModelView
 from flask import session, redirect, url_for, request
 from.models import db, Card, User, Subscription
 
