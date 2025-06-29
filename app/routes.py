@@ -3,7 +3,6 @@ from flask import Blueprint, request, jsonify, send_file, render_template, redir
 from .models import  Card
 from .services import generate_qr_code_with_logo
 import stripe
-from . import db
 # Assurez-vous d'avoir installé stripe avec `pip install stripe`
 
 

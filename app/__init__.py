@@ -7,6 +7,7 @@ from config import Config
 import os
 from .admin import admin
 from flask_sqlalchemy import SQLAlchemy
+from .extensions import db
 
 
 
@@ -21,7 +22,6 @@ def create_app(config_class=Config):
         pass
 
     # Initialiser les extensions
-    db = SQLAlchemy()
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.secret_key = app.config['SECRET_KEY']  # Utiliser la clé secrète de la config
