@@ -9,3 +9,4 @@ class Config:
     STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET') # Fais de même pour le secret du webhook !
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
+    

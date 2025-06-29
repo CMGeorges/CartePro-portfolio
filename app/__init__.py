@@ -8,7 +8,7 @@ import os
 from .admin import admin
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+
 
 def create_app(config_class=Config):
     app = Flask(__name__, instance_relative_config=True)
@@ -21,6 +21,12 @@ def create_app(config_class=Config):
         pass
 
     # Initialiser les extensions
+    db = SQLAlchemy()
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'app.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.secret_key = app.config['SECRET_KEY']  # Utiliser la clé secrète de la config
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
+    
     db.init_app(app)
     CORS(app)
     admin.init_app(app) # Initialiser Flask-Admin
