@@ -36,10 +36,13 @@ jobs:
           # --exit-zero ne bloque pas pour les erreurs de style, juste les erreurs graves.
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+      - name: Installer requests pour les tests API
+        run: pip install requests
+
       - name: Exécuter des tests unitaires (placeholder)
         run: |
           echo "Tests unitaires à venir avec Pytest..."
-          # Quand tu auras des tests, tu pourras lancer: pytest
+          python test_api.py
 
       - name: Exécuter des tests (avec la clé API)
         run: |
