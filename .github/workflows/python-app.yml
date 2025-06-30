@@ -42,7 +42,7 @@ jobs:
       - name: Exécuter des tests unitaires (placeholder)
         run: |
           echo "Tests unitaires à venir avec Pytest..."
-          python test_api.py
+          python tests/test_api.py
 
       - name: Exécuter des tests (avec la clé API)
         run: |
