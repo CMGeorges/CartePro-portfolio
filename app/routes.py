@@ -3,6 +3,8 @@ from flask import Blueprint, request, jsonify, send_file, render_template, redir
 from .models import  Card
 from .services import generate_qr_code_with_logo
 import stripe
+from .extensions import db
+from flask_login import login_required,current_user
 # Assurez-vous d'avoir installé stripe avec `pip install stripe`
 
 
@@ -49,9 +51,9 @@ def index():
 @main_routes.route('/generate', methods=['POST'])
 def generate_qr():
     data = request.json
-    url = data.get("url")
+    url = data.get("website")
     if not url:
-        return jsonify({"error": "Missing 'url' in request."}), 400
+        return jsonify({"error": "Missing 'url or website' in request."}), 400
 
     image_buffer = generate_qr_code_with_logo(url)
     if not image_buffer:
@@ -61,6 +63,7 @@ def generate_qr():
 
 # TODO: when post new card response is not found 
 @main_routes.route('/cards', methods=['POST'])
+@login_required  # Assurez-vous que l'utilisateur est authentifié
 def create_card():
     data = request.json
     required = ["name", "email", "title"]
@@ -68,6 +71,7 @@ def create_card():
         return jsonify({"error": "Missing required fields"}), 400
     
     new_card = Card(
+        user_id=current_user.id,  # Assuming user_id is provided in the request
         name=data['name'],
         email=data['email'],
         title=data['title'],
@@ -143,23 +147,27 @@ def stripe_webhook():
 
 @main_routes.route('/config', methods=['GET'])
 def get_config():
-    # On récupère tous les produits actifs depuis Stripe
-    #print("Stripe API KEY:", stripe.api_key)  # DEBUG
-    # L'argument 'expand' permet de récupérer le prix par défaut en une seule requête
-    products = stripe.Product.list(active=True, expand=['data.default_price'])
-    
-    plans = []
-    for product in products:
-        # On s'assure que le produit a bien un prix par défaut
-        if product.default_price:
-            plans.append({
-                "name": product.name,
-                "description": product.description,
-                "price_id": product.default_price.id,
-                # Le prix est en centimes, on le convertit en dollars
-                "price": f"{product.default_price.unit_amount / 100:.2f}", 
-                "currency": product.default_price.currency,
-                "interval": product.default_price.recurring.interval if product.default_price.recurring else 'one-time',
-            })
+    try:
+        # On récupère tous les produits actifs depuis Stripe
+        #print("Stripe API KEY:", stripe.api_key)  # DEBUG
+        # L'argument 'expand' permet de récupérer le prix par défaut en une seule requête
+        products = stripe.Product.list(active=True, expand=['data.default_price'])
+        
+        plans = []
+        for product in products:
+            # On s'assure que le produit a bien un prix par défaut
+            if product.default_price:
+                plans.append({
+                    "name": product.name,
+                    "description": product.description,
+                    "price_id": product.default_price.id,
+                    # Le prix est en centimes, on le convertit en dollars
+                    "price": f"{product.default_price.unit_amount / 100:.2f}", 
+                    "currency": product.default_price.currency,
+                    "interval": product.default_price.recurring.interval if product.default_price.recurring else 'one-time',
+                })
 
-    return jsonify(plans)
+        return jsonify(plans)
+    except Exception as e:
+        print("Erreur Stripe:", e)
+        return jsonify({"error": str(e)}), 500

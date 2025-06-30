@@ -13,6 +13,8 @@ import stripe
 
 
 def create_app(config_class=Config):
+    # Chemin absolu vers templates
+    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
 
