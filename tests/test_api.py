@@ -1,6 +1,7 @@
 import requests
 
 BASE_URL = "http://localhost:5000/api/v1"
+AUTH_URL = "http://localhost:5000/auth"
 
 def print_response(resp):
     print(f"[{resp.request.method}] {resp.url}")
@@ -11,16 +12,16 @@ def print_response(resp):
         print("Response (non-JSON):", resp.text)
     print("-" * 60)
 
-def test_health():
-    resp = requests.get(f"{BASE_URL}/")
+def test_health(session):
+    resp = session.get(f"{BASE_URL}/")
     print_response(resp)
 
-def test_generate_qr():
+def test_generate_qr(session):
     data = {"url": "https://example.com"}
-    resp = requests.post(f"{BASE_URL}/generate", json=data)
+    resp = session.post(f"{BASE_URL}/generate", json=data)
     print_response(resp)
 
-def test_card_lifecycle():
+def test_card_lifecycle(session):
     # Création
     data = {
         "name": "Alice Test",
@@ -31,7 +32,7 @@ def test_card_lifecycle():
         "instagram": "@alice",
         "linkedin": "linkedin.com/in/alice"
     }
-    resp = requests.post(f"{BASE_URL}/cards", json=data)
+    resp = session.post(f"{BASE_URL}/cards", json=data)
     print_response(resp)
     if resp.status_code not in (200, 201) or 'id' not in resp.json():
         print("❌ Création de carte échouée, tests suivants annulés.")
@@ -39,38 +40,56 @@ def test_card_lifecycle():
     card_id = resp.json()['id']
 
     # Lecture
-    resp = requests.get(f"{BASE_URL}/cards/{card_id}")
+    resp = session.get(f"{BASE_URL}/cards/{card_id}")
     print_response(resp)
 
     # Mise à jour
     update_data = {"phone": "987-654-3210"}
-    resp = requests.put(f"{BASE_URL}/cards/{card_id}", json=update_data)
+    resp = session.put(f"{BASE_URL}/cards/{card_id}", json=update_data)
     print_response(resp)
 
     # Suppression
-    resp = requests.delete(f"{BASE_URL}/cards/{card_id}")
+    resp = session.delete(f"{BASE_URL}/cards/{card_id}")
     print_response(resp)
 
     return card_id
 
-def test_checkout_session():
+def test_checkout_session(session):
     # Remplace price_XXXXXX par un vrai Price ID Stripe pour un vrai test
     data = {"price_id": "price_XXXXXX"}
-    resp = requests.post(f"{BASE_URL}/create-checkout-session", json=data)
+    resp = session.post(f"{BASE_URL}/create-checkout-session", json=data)
     print_response(resp)
 
-def test_config():
-    resp = requests.get(f"{BASE_URL}/config")
+def test_config(session):
+    resp = session.get(f"{BASE_URL}/config")
+    print_response(resp)
+
+def register_and_login(session, username, email, password):
+    # Register
+    resp = session.post(f"{AUTH_URL}/register", json={
+        "username": username,
+        "email": email,
+        "password": password
+    })
+    print_response(resp)
+    # Login
+    resp = session.post(f"{AUTH_URL}/login", json={
+        "email": email,
+        "password": password
+    })
     print_response(resp)
 
 if __name__ == "__main__":
+    session = requests.Session()
+    print("=== Register & Login ===")
+    register_and_login(session, "alice", "alice@example.com", "testpass123")
     print("=== Test API Health ===")
-    test_health()
+    test_health(session)
     print("=== Test QR Code Generation ===")
-    test_generate_qr()
+    test_generate_qr(session)
     print("=== Test Card Lifecycle ===")
-    test_card_lifecycle()
+    test_card_lifecycle(session)
     print("=== Test Stripe Checkout Session ===")
-    test_checkout_session()
+    test_checkout_session(session)
     print("=== Test Stripe Config ===")
-    test_config()
+    test_config(session)
