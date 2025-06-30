@@ -3,6 +3,7 @@
 from .extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+from flask_login import UserMixin
 
 def generate_uuid():
     return str(uuid.uuid4())
@@ -23,7 +24,7 @@ class Card(db.Model):
     plan_type = db.Column(db.String(20), default='none') # ex: 'one_time', 'pro_annual'
     is_active = db.Column(db.Boolean, default=True)
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -31,6 +32,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     stripe_customer_id = db.Column(db.String(120), unique=True, nullable=True)
     is_admin = db.Column(db.Boolean, default=False)  # Pour gérer les rôles d'utilisateur
+    cards = db.relationship('Card', backref='user', lazy=True)
+    subscriptions = db.relationship('Subscription', backref='user', lazy=True)
 
     def set_password(self, password):
         """Crée un hash sécurisé du mot de passe."""
