@@ -52,6 +52,9 @@ jobs:
       - name: Exécuter des tests (avec la clé API)
         # C'est ici la magie ! On injecte le secret GitHub
         # dans une variable d'environnement pour le script de test.
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+
         run: |
           echo "Lancement des tests avec la clé Stripe..."
           pytest tests/test_stripe.py # Assure-toi que ce fichier existe et contient tes tests
