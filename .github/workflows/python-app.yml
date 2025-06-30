@@ -39,6 +39,11 @@ jobs:
       - name: Installer requests pour les tests API
         run: pip install requests
 
+      - name: Lancer le serveur Flask en arrière-plan
+        run: |
+          python run.py &
+          sleep 5
+
       - name: Exécuter des tests unitaires (placeholder)
         run: |
           echo "Tests unitaires à venir avec Pytest..."
