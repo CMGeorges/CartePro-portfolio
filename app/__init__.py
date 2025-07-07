@@ -6,13 +6,16 @@ from .auth import auth_routes
 from config import Config
 import os
 from .admin import admin
+from .models import User
 from flask_sqlalchemy import SQLAlchemy
-from .extensions import db
+from .extensions import db, login_manager
 import stripe
 
 
 
 def create_app(config_class=Config):
+    # Chemin absolu vers templates
+    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_class)
 
@@ -27,7 +30,8 @@ def create_app(config_class=Config):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.secret_key = app.config['SECRET_KEY']  # Utiliser la clé secrète de la config
     app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
-    #TODO: Configure Stripe avec ta clé secrète (à mettre dans config.py ou .env)
+    
+    # Configurer Stripe
     stripe.api_key = app.config['STRIPE_SECRET_KEY']
 
 
@@ -35,10 +39,16 @@ def create_app(config_class=Config):
     db.init_app(app)
     CORS(app)
     admin.init_app(app) # Initialiser Flask-Admin
+    login_manager.init_app(app)  # Initialiser Flask-Login
+    login_manager.login_view = 'auth.login'  # Définir la vue de connexion
 
     # Enregistrer le blueprint
     app.register_blueprint(main_routes, url_prefix='/api/v1')
     app.register_blueprint(auth_routes, url_prefix='/auth')
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
 
     #gestion erreurs
