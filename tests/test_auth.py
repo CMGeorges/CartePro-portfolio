@@ -30,9 +30,9 @@ def register(client, username, email, password):
         'password': password
     })
 
-def login(client, email, password):
+def login(client, username, password):
     return client.post('/auth/login', json={
-        'email': email,
+        'username': username,
         'password': password
     })
 
@@ -95,7 +95,7 @@ def test_protected_routes_require_login(client):
 
 def test_me_route(client):
     register(client, "bob", "bob@mail.com", "1234")
-    login(client, "bob@mail.com", "1234")
+    login(client, "bob", "1234")
     rv = client.get('/auth/me')
     assert rv.status_code == 200
     data = rv.get_json()
