@@ -58,7 +58,7 @@ def test_user_registration_and_login(client):
 def test_card_crud(client):
     # Register and login
     register(client, "alice", "alice@mail.com", "pass")
-    login(client, "alice@mail.com", "pass")
+    login(client, "alice", "pass")
 
     # Create card
     rv = client.post('/api/v1/cards', json={
