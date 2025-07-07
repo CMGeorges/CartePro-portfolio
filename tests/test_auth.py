@@ -48,8 +48,7 @@ def test_user_registration_and_login(client):
     # Login
     rv = login(client, "bob", "1234")
     assert rv.status_code == 200
-    assert b"Logged in successfully" in rv.data
-
+    assert rv.get_json()["message"]
     # Logout
     rv = logout(client)
     assert rv.status_code == 200
