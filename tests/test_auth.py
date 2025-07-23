@@ -1,3 +1,4 @@
+# tests/test_auth.py
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -95,3 +96,32 @@ def test_me_route(client):
     assert rv.status_code == 200
     data = rv.get_json()
     assert data["username"] == "bob"
+
+
+def test_card_access_forbidden(client):
+    # User 1
+    register(client, "user1", "u1@mail.com", "pass")
+    login(client, "user1", "pass")
+    rv = client.post('/api/v1/cards', json={
+        "name": "User 1 Card",
+        "email": "u1@mail.com",
+        "title": "CTO"
+    })
+    card_id = rv.get_json()["id"]
+    logout(client)
+
+    # User 2
+    register(client, "user2", "u2@mail.com", "pass")
+    login(client, "user2", "pass")
+
+    # Try to access user1's card
+    rv = client.get(f'/api/v1/cards/{card_id}')
+    assert rv.status_code == 403
+
+    # Try to update user1's card
+    rv = client.put(f'/api/v1/cards/{card_id}', json={"title": "Stolen"})
+    assert rv.status_code == 403
+
+    # Try to delete user1's card
+    rv = client.delete(f'/api/v1/cards/{card_id}')
+    assert rv.status_code == 403
