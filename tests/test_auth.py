@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import pytest
 from app import create_app, db
 from app.models import User, Card
+from app.extensions import limiter
 from werkzeug.security import generate_password_hash
 
 class TestConfig:
@@ -17,6 +18,7 @@ class TestConfig:
 @pytest.fixture
 def app_instance():
     app = create_app(TestConfig)
+    limiter.reset()
     with app.app_context():
         db.create_all()
         yield app
@@ -129,4 +131,14 @@ def test_card_access_forbidden(client):
 
     rv = client.delete(f'/api/v1/cards/{card_id}')
     assert rv.status_code == 403
+
+
+def test_login_rate_limit(client):
+    register(client, "ratelimit", "rl@mail.com", "pass")
+    # 5 allowed attempts
+    for i in range(5):
+        rv = login(client, "ratelimit", "wrong")
+        assert rv.status_code == 401
+    rv = login(client, "ratelimit", "wrong")
+    assert rv.status_code == 429
 
