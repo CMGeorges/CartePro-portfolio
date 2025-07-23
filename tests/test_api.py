@@ -1,6 +1,7 @@
 # tests/test_api.py
 import pytest
 import requests
+import os
 
 BASE_URL = "http://localhost:5000/api/v1"
 AUTH_URL = "http://localhost:5000/auth"
@@ -38,7 +39,7 @@ def register_and_login(session, username, email, password):
 def test_health(session):
     resp = session.get(f"{BASE_URL}/")
     print_response(resp)
-    assert resp.status_code in (200, 404)  # 404 si pas de route /api/v1/
+    assert resp.status_code in (200, 404)
 
 def test_generate_qr(session):
     data = {"url": "https://example.com"}
@@ -113,24 +114,24 @@ def test_admin_routes(session):
     print_response(resp)
     assert resp.status_code in (200, 403)
 
-
 def test_unauthorized_access(session):
     # User A
     register_and_login(session, "user1", "user1@example.com", "pass")
     data = {"name": "A", "email": "a@a.com", "title": "A"}
     resp = session.post(f"{BASE_URL}/cards", json=data)
     card_id = resp.json().get('id')
-    
+
     # Nouveau user
     session.cookies.clear()
     register_and_login(session, "user2", "user2@example.com", "pass")
-    
+
     # Tenter d’accéder à la carte de user1
     resp = session.get(f"{BASE_URL}/cards/{card_id}")
+    print_response(resp)
     assert resp.status_code == 403
 
 def test_admin_access_granted(session):
-    # Étape 1 : Créer un compte admin
+    # Créer un compte admin
     username = "admin"
     email = "admin@example.com"
     password = "adminpass"
@@ -142,22 +143,23 @@ def test_admin_access_granted(session):
     })
     assert resp.status_code in (200, 201)
 
-    # Étape 2 : Forcer le rôle admin dans la base de données
+    # Forcer le rôle admin dans la base de données (SQLite direct)
+    db_path = os.path.join("instance", "app.db")
     import sqlite3
-    conn = sqlite3.connect("instance/app.db")  # adapte le chemin si besoin
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("UPDATE user SET role='admin' WHERE username=?", (username,))
     conn.commit()
     conn.close()
 
-    # Étape 3 : Se reconnecter
+    # Se reconnecter
     resp = session.post(f"{AUTH_URL}/login", json={
         "username": username,
         "password": password
     })
     assert resp.status_code == 200
 
-    # Étape 4 : Appeler une route admin
+    # Appeler une route admin
     resp = session.get(f"{BASE_URL}/admin/users")
     print_response(resp)
     assert resp.status_code == 200
