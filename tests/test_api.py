@@ -1,100 +1,53 @@
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import pytest
-import requests
+from app import create_app, db
 
 @pytest.fixture
-def session():
-    return requests.Session()
+def client():
+    app = create_app()
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    with app.app_context():
+        db.create_all()
+        yield app.test_client()
+        db.drop_all()
 
-BASE_URL = "http://localhost:5000/api/v1"
-AUTH_URL = "http://localhost:5000/auth"
+def register(client, username, password):
+    return client.post('/auth/register', json={'username': username, 'password': password})
 
-def print_response(resp):
-    print(f"[{resp.request.method}] {resp.url}")
-    print(f"Status: {resp.status_code}")
-    try:
-        print("Response:", resp.json())
-    except Exception:
-        print("Response (non-JSON):", resp.text)
-    print("-" * 60)
+def login(client, username, password):
+    return client.post('/auth/login', json={'username': username, 'password': password})
 
-def test_health(session):
-    resp = session.get(f"{BASE_URL}/")
-    print_response(resp)
+def test_health(client):
+    resp = client.get('/api/v1/')
+    assert resp.status_code == 200
+    assert resp.get_json()['message'] == 'QR Card API is running.'
 
-def test_generate_qr(session):
-    data = {"url": "https://example.com"}
-    resp = session.post(f"{BASE_URL}/generate", json=data)
-    print_response(resp)
+def test_generate_qr(client):
+    data = {'url': 'https://example.com'}
+    resp = client.post('/api/v1/generate', json=data)
+    assert resp.status_code == 200
+    assert resp.mimetype == 'image/png'
 
-def test_card_lifecycle(session):
-    # Création
-    data = {
-        "name": "Alice Test",
-        "email": "alice@example.com",
-        "title": "CEO",
-        "phone": "123-456-7890",
-        "website": "https://alice.com",
-        "instagram": "@alice",
-        "linkedin": "linkedin.com/in/alice"
-    }
-    resp = session.post(f"{BASE_URL}/cards", json=data)
-    print_response(resp)
-    if resp.status_code not in (200, 201) or 'id' not in resp.json():
-        print("❌ Création de carte échouée, tests suivants annulés.")
-        return None
-    card_id = resp.json()['id']
+def test_card_lifecycle(client):
+    register(client, 'alice', 'pass')
+    login(client, 'alice', 'pass')
 
-    # Lecture
-    resp = session.get(f"{BASE_URL}/cards/{card_id}")
-    print_response(resp)
-
-    # Mise à jour
-    update_data = {"phone": "987-654-3210"}
-    resp = session.put(f"{BASE_URL}/cards/{card_id}", json=update_data)
-    print_response(resp)
-
-    # Suppression
-    resp = session.delete(f"{BASE_URL}/cards/{card_id}")
-    print_response(resp)
-
-    return card_id
-
-def test_checkout_session(session):
-    # Remplace price_XXXXXX par un vrai Price ID Stripe pour un vrai test
-    data = {"price_id": "price_XXXXXX"}
-    resp = session.post(f"{BASE_URL}/create-checkout-session", json=data)
-    print_response(resp)
-
-def test_config(session):
-    resp = session.get(f"{BASE_URL}/config")
-    print_response(resp)
-
-def register_and_login(session, username, email, password):
-    # Register
-    resp = session.post(f"{AUTH_URL}/register", json={
-        "username": username,
-        "email": email,
-        "password": password
+    create_resp = client.post('/api/v1/cards', json={
+        'name': 'Alice Card',
+        'email': 'alice@example.com',
+        'title': 'CEO'
     })
-    print_response(resp)
-    # Login
-    resp = session.post(f"{AUTH_URL}/login", json={
-        "email": email,
-        "password": password
-    })
-    print_response(resp)
+    assert create_resp.status_code == 201
+    card_id = create_resp.get_json()['id']
 
-if __name__ == "__main__":
-    session = requests.Session()
-    print("=== Register & Login ===")
-    register_and_login(session, "alice", "alice@example.com", "testpass123")
-    print("=== Test API Health ===")
-    test_health(session)
-    print("=== Test QR Code Generation ===")
-    test_generate_qr(session)
-    print("=== Test Card Lifecycle ===")
-    test_card_lifecycle(session)
-    print("=== Test Stripe Checkout Session ===")
-    test_checkout_session(session)
-    print("=== Test Stripe Config ===")
-    test_config(session)
+    get_resp = client.get(f'/api/v1/cards/{card_id}')
+    assert get_resp.status_code == 200
+
+    update_resp = client.put(f'/api/v1/cards/{card_id}', json={'title': 'CTO'})
+    assert update_resp.status_code == 200
+
+    delete_resp = client.delete(f'/api/v1/cards/{card_id}')
+    assert delete_resp.status_code == 200
