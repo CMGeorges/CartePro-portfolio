@@ -10,6 +10,27 @@ AUTH_URL = "http://localhost:5000/auth"
 def session():
     return requests.Session()
 
+@pytest.fixture
+def client():
+    app = create_app()
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    with app.app_context():
+        db.create_all()
+        yield app.test_client()
+        db.session.remove()
+        db.drop_all()
+
+@pytest.fixture
+def admin_user(client):
+    with client.application.app_context():
+        user = User(username="admin", email="admin@mail.com",
+                    password=generate_password_hash("adminpass"),
+                    role="admin")
+        db.session.add(user)
+        db.session.commit()
+        return user
+
 def print_response(resp):
     print(f"[{resp.request.method}] {resp.url}")
     print(f"Status: {resp.status_code}")

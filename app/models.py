@@ -27,9 +27,9 @@ class Card(db.Model):
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), default="user")  # Ajout du champ rôle
     stripe_customer_id = db.Column(db.String(120), unique=True, nullable=True)
     is_admin = db.Column(db.Boolean, default=False)  # Pour gérer les rôles d'utilisateur
@@ -46,6 +46,16 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return f'<User {self.username}>'
+    
+    def serialize(self):
+        """Serialize the user object to a dictionary."""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'role': self.role,
+            'is_admin': self.is_admin
+        }
     
 class Subscription(db.Model):
     __tablename__ = 'subscriptions'

@@ -58,7 +58,7 @@ def test_card_crud(client):
     login(client, "alice", "pass")
 
     # Create card
-    rv = client.post('/api/v1/cards', json={
+    rv = client.post('/api/v1/cards/', json={
         "name": "Alice Card",
         "email": "alice@mail.com",
         "title": "CEO"
@@ -83,7 +83,7 @@ def test_card_crud(client):
 
 def test_protected_routes_require_login(client):
     # Try to create card without login
-    rv = client.post('/api/v1/cards', json={
+    rv = client.post('/api/v1/cards/', json={
         "name": "NoAuth",
         "email": "noauth@mail.com",
         "title": "Hacker"
@@ -103,7 +103,7 @@ def test_card_access_forbidden(client):
     # User 1
     register(client, "user1", "u1@mail.com", "pass")
     login(client, "user1", "pass")
-    rv = client.post('/api/v1/cards', json={
+    rv = client.post('/api/v1/cards/', json={
         "name": "User 1 Card",
         "email": "u1@mail.com",
         "title": "CTO"

@@ -1,3 +1,4 @@
+# routes/admin.py
 from flask import Blueprint, jsonify, request
 from app.models import User, Card
 from app.decorators import admin_required
