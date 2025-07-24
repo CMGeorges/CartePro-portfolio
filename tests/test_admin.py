@@ -13,6 +13,7 @@ class TestConfig:
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SECRET_KEY = 'test'
     STRIPE_SECRET_KEY = 'sk_test'
+    WTF_CSRF_ENABLED = False
 
 @pytest.fixture
 def app_instance():
@@ -59,4 +60,21 @@ def test_admin_routes(client, admin_user):
     rv = client.get('/api/v1/admin/backups')
     assert rv.status_code == 200
     assert isinstance(rv.get_json(), list)
+
+    rv = client.get('/api/v1/admin/users', query_string={'email': 'admin@mail.com'})
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert len(data) == 1
+    assert data[0]['email'] == 'admin@mail.com'
+
+    # Create and delete a card then restore it
+    rv = client.post('/api/v1/cards/', json={
+        'name': 'Admin Card',
+        'email': 'admin@mail.com',
+        'title': 'Boss'
+    })
+    card_id = rv.get_json()['id']
+    client.delete(f'/api/v1/cards/{card_id}')
+    rv = client.post(f'/api/v1/admin/restore_card/{card_id}')
+    assert rv.status_code == 200
 

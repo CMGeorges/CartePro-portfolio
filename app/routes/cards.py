@@ -28,6 +28,8 @@ def create_card():
 @login_required
 def get_card(card_id):
     card = Card.query.get_or_404(card_id)
+    if card.is_deleted:
+        return jsonify({'error': 'Deleted'}), 403
     if card.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     return jsonify(card.serialize())
@@ -36,6 +38,8 @@ def get_card(card_id):
 @login_required
 def update_card(card_id):
     card = Card.query.get_or_404(card_id)
+    if card.is_deleted:
+        return jsonify({'error': 'Deleted'}), 403
     if card.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     data = request.json
@@ -55,7 +59,7 @@ def delete_card(card_id):
     card = Card.query.get_or_404(card_id)
     if card.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
-    db.session.delete(card)
+    card.is_deleted = True
     db.session.commit()
     return jsonify({'message': 'Card deleted'})
 

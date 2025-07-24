@@ -13,6 +13,7 @@ class TestConfig:
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     SECRET_KEY = 'test'
     STRIPE_SECRET_KEY = 'sk_test'
+    WTF_CSRF_ENABLED = False
 
 @pytest.fixture
 def app_instance():
@@ -87,6 +88,9 @@ def test_card_crud(client):
     rv = client.delete(f'/api/v1/cards/{card_id}')
     assert rv.status_code == 200
     assert "deleted" in rv.get_json()["message"]
+    # Ensure soft delete
+    rv = client.get(f'/api/v1/cards/{card_id}')
+    assert rv.status_code == 403
 
 
 def test_protected_routes_require_login(client):

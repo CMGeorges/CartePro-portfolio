@@ -1,5 +1,7 @@
 #__init__.py
 from flask import Flask, render_template
+from flask_wtf import CSRFProtect
+from loguru import logger
 from flask_cors import CORS
 from .auth import auth_routes
 from .routes.cards import cards_bp
@@ -47,10 +49,13 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.secret_key = app.config['SECRET_KEY']
     app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
+    log_file = os.path.join(app.instance_path, 'app.log')
+    logger.add(log_file)
 
     # Initialisation des extensions
     stripe.api_key = app.config['STRIPE_SECRET_KEY']
     db.init_app(app)
+    CSRFProtect(app)
     CORS(app)
     admin.init_app(app)
     login_manager.init_app(app)
@@ -76,6 +81,11 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     @app.errorhandler(404)
     def not_found_error(error):
         return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        logger.exception("Server error: %s", error)
+        return render_template('errors/500.html'), 500
 
     # Création DB
     with app.app_context():

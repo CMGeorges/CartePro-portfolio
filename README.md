@@ -134,6 +134,12 @@ Project is ready for deployment to [Render](https://render.com), Railway or any 
 - Port is automatically bound from `os.environ["PORT"]`
 - CI workflow handles testing and lint before deploy
 
+You can also run the project locally with Docker:
+
+```bash
+docker-compose up --build
+```
+
 ---
 
 ## 📚 License

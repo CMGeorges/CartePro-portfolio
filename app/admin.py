@@ -21,9 +21,8 @@ class MyAdminIndexView(AdminIndexView):
 class UserAdminView(ModelView):
     #colonnes à afficher dans la liste
     column_list = ('id', 'username', 'stripe_customer_id')
-    # permet la recherche par nom d'utilisateur
-    column_filters = ('username',)
-    #TODO: permet la recherche par email
+    # permet la recherche par nom d'utilisateur ou email
+    column_filters = ('username', 'email')
 
 class SubscriptionAdminView(ModelView):
     #colonnes à afficher dans la liste

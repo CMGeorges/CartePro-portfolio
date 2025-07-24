@@ -23,6 +23,7 @@ class Card(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     plan_type = db.Column(db.String(20), default='none') # ex: 'one_time', 'pro_annual'
     is_active = db.Column(db.Boolean, default=True)
+    is_deleted = db.Column(db.Boolean, default=False)
 
     def serialize(self):
         return {
@@ -37,6 +38,7 @@ class Card(db.Model):
             "user_id": self.user_id,
             "plan_type": self.plan_type,
             "is_active": self.is_active,
+            "is_deleted": self.is_deleted,
         }
 
 class User(UserMixin, db.Model):
