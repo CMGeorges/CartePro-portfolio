@@ -5,9 +5,9 @@ name: Python Flask CI/CD
 on:
   # Déclenche le workflow sur les push et pull requests vers la branche principale
   push:
-    branches: [dev] # ou [ master ] si tu utilises toujours l'ancien nom
+    branches: [dev] # ou [ main ]
   pull_request:
-    branches: [master, dev] # ou [ master ]
+    branches: [main, dev] # ou [ master ]
 
 jobs:
   build-and-test:
@@ -60,4 +60,3 @@ jobs:
       #  run: |
       #    echo "Lancement des tests avec la clé Stripe..."
       #    pytest tests/test_stripe.py # Assure-toi que ce fichier existe et contient tes tests
-

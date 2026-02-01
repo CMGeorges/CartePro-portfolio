@@ -1,7 +1,21 @@
-venv/
+# env / secrets
+.env
+.env.*
+*.key
+
+# python
 __pycache__/
 *.pyc
-.env
-instance/
-backups/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
 
+# flask
+instance/
+*.sqlite3
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
