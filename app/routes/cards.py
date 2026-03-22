@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from app.models import Card, db
+from app.errors import APIError, commit_session
 from app.utils import paginate_query
 
 cards_bp = Blueprint('cards', __name__)
@@ -14,9 +15,11 @@ def list_cards():
 @cards_bp.route('/', methods=['POST'])
 @login_required
 def create_card():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     if not current_user.is_pro and Card.query.filter_by(user_id=current_user.id).count() >= 1:
         return jsonify({'error': 'Card limit reached'}), 403
+    if not data.get('name') or not data.get('email') or not data.get('title'):
+        raise APIError("Name, email and title are required.", 400)
     card = Card(
         user_id=current_user.id,
         name=data.get('name'),
@@ -28,7 +31,7 @@ def create_card():
         linkedin=data.get('linkedin')
     )
     db.session.add(card)
-    db.session.commit()
+    commit_session("Unable to create card.")
     return jsonify({'message': 'Card created', 'id': card.id}), 201
 
 @cards_bp.route('/<string:card_id>', methods=['GET'])
@@ -49,7 +52,7 @@ def update_card(card_id):
         return jsonify({'error': 'Deleted'}), 403
     if card.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
-    data = request.json
+    data = request.get_json(silent=True) or {}
     card.name = data.get('name', card.name)
     card.email = data.get('email', card.email)
     card.title = data.get('title', card.title)
@@ -57,7 +60,7 @@ def update_card(card_id):
     card.website = data.get('website', card.website)
     card.instagram = data.get('instagram', card.instagram)
     card.linkedin = data.get('linkedin', card.linkedin)
-    db.session.commit()
+    commit_session("Unable to update card.")
     return jsonify({'message': 'Card updated'})
 
 @cards_bp.route('/<string:card_id>', methods=['DELETE'])
@@ -67,6 +70,6 @@ def delete_card(card_id):
     if card.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     card.is_deleted = True
-    db.session.commit()
+    commit_session("Unable to delete card.")
     return jsonify({'message': 'Card deleted'})
 

@@ -67,6 +67,12 @@ def test_user_registration_and_login(client):
     assert "Logged out" in rv.get_json()["message"]
 
 
+def test_register_requires_required_fields(client):
+    rv = client.post('/auth/register', json={"username": "bob"})
+    assert rv.status_code == 400
+    assert "required" in rv.get_json()["error"]
+
+
 def test_card_crud(client):
     register(client, "alice", "alice@mail.com", "pass")
     login(client, "alice", "pass")
@@ -188,4 +194,11 @@ def test_stripe_webhook(client):
     }
     rv = client.post('/api/v1/stripe/webhook', json=event)
     assert rv.status_code == 200
+
+
+def test_api_not_found_returns_json(client):
+    rv = client.get('/api/v1/unknown')
+    assert rv.status_code == 404
+    assert rv.is_json
+    assert "error" in rv.get_json()
 
