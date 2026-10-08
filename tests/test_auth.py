@@ -187,13 +187,13 @@ def test_update_me_and_delete(client):
     assert rv.status_code in (401, 302)
 
 
-def test_stripe_webhook(client):
+def test_unsigned_webhook_is_rejected_even_in_testing(client):
     event = {
         'type': 'customer.subscription.updated',
         'data': {'object': {'id': 'sub_123', 'status': 'active'}}
     }
     rv = client.post('/api/v1/stripe/webhook', json=event)
-    assert rv.status_code == 200
+    assert rv.status_code == 503
 
 
 def test_api_not_found_returns_json(client):

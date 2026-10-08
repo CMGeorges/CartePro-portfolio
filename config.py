@@ -37,6 +37,7 @@ class TestingConfig(Config):
 
 
 class ProductionConfig(Config):
+    ENV_NAME = "production"
     """🚀 Configuration pour la production"""
     DEBUG = False
     TESTING = False

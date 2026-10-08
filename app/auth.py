@@ -6,9 +6,15 @@ from werkzeug.utils import secure_filename
 import os
 from .models import db, User
 from .extensions import limiter
+from flask_wtf.csrf import generate_csrf
 from .errors import commit_session
 
 auth_routes = Blueprint('auth', __name__)
+
+@auth_routes.get('/csrf')
+def csrf_token():
+    return jsonify(csrfToken=generate_csrf())
+
 
 @auth_routes.route('/register', methods=['POST'])
 def register():

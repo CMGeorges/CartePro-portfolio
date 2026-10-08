@@ -113,3 +113,9 @@ class Subscription(db.Model):
     def __repr__(self):
         return f'<Subscription {self.stripe_subscription_id} for User {self.user_id}>'
 
+
+class StripeWebhookEvent(db.Model):
+    __tablename__ = 'stripe_webhook_events'
+    id = db.Column(db.String(255), primary_key=True)
+    event_type = db.Column(db.String(120), nullable=False)
+    processed_at = db.Column(db.DateTime, nullable=False)
