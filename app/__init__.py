@@ -1,6 +1,5 @@
 #__init__.py
 from flask import Flask
-from flask_wtf import CSRFProtect
 from loguru import logger
 from flask_cors import CORS
 from .auth import auth_routes
@@ -12,7 +11,7 @@ from .routes.public import public_bp
 from .admin import admin
 from .errors import register_error_handlers
 from .models import User
-from .extensions import db, login_manager, limiter
+from .extensions import db, login_manager, limiter, csrf
 import os
 import stripe
 from dotenv import load_dotenv
@@ -56,7 +55,7 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     # Initialisation des extensions
     stripe.api_key = app.config['STRIPE_SECRET_KEY']
     db.init_app(app)
-    CSRFProtect(app)
+    csrf.init_app(app)
     CORS(
         app,
         resources={
@@ -84,6 +83,10 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
 
     register_error_handlers(app)
 
